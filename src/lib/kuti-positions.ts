@@ -1,0 +1,37 @@
+// Kuti positions as percentage of the map image dimensions
+// Each position represents the center of the kuti on the map
+export const KUTI_POSITIONS: Record<string, { x: number; y: number }> = {
+  "1":  { x: 15, y: 73 },
+  "2":  { x: 28, y: 73 },
+  "3":  { x: 40, y: 73 },
+  "4":  { x: 53, y: 73 },
+  "5":  { x: 90, y: 77 },
+  "6":  { x: 75, y: 67 },
+  "7":  { x: 90, y: 67 },
+  "8":  { x: 12, y: 53 },
+  "9":  { x: 25, y: 53 },
+  "10": { x: 38, y: 53 },
+  "11": { x: 52, y: 53 },
+  "12": { x: 68, y: 53 },
+  "13": { x: 78, y: 53 },
+  "14": { x: 90, y: 55 },
+  "15": { x: 90, y: 43 },
+  "17": { x: 82, y: 28 },
+  "18": { x: 78, y: 23 },
+  "19": { x: 15, y: 39 },
+  "20": { x: 5,  y: 35 },
+  "21": { x: 7,  y: 17 },
+  "22": { x: 22, y: 9  },
+  "23": { x: 12, y: 7  },
+  "24": { x: 7,  y: 3  },
+  "25": { x: 58, y: 5  },
+  "26": { x: 88, y: 4  },
+  "28": { x: 62, y: 15 },
+  "29": { x: 27, y: 16 },
+  "30": { x: 20, y: 33 },
+  "31": { x: 58, y: 33 },
+  "32": { x: 85, y: 29 },
+  "33": { x: 78, y: 13 },
+};
+
+export const ALL_KUTI_NUMBERS = Object.keys(KUTI_POSITIONS).sort((a, b) => Number(a) - Number(b));
