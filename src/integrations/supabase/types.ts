@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          id: string
+          kuti_id: string
+          kuti_number: string
+          action_type: string
+          old_data: Json
+          new_data: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          kuti_id: string
+          kuti_number: string
+          action_type: string
+          old_data: Json
+          new_data: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          kuti_id?: string
+          kuti_number?: string
+          action_type?: string
+          old_data?: Json
+          new_data?: Json
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_kuti_id_fkey"
+            columns: ["kuti_id"]
+            isOneToOne: false
+            referencedRelation: "kutis"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       kutis: {
         Row: {
           created_at: string

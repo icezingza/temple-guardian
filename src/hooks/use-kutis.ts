@@ -42,7 +42,24 @@ export function useUpdateKuti() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onMutate: async ({ id, name, status, notes }) => {
+      await queryClient.cancelQueries({ queryKey: ["kutis"] });
+      const previous = queryClient.getQueryData<Kuti[]>(["kutis"]);
+      queryClient.setQueryData<Kuti[]>(["kutis"], (old) =>
+        (old ?? []).map((k) =>
+          k.id === id
+            ? { ...k, name, status, notes, updated_at: new Date().toISOString() }
+            : k
+        )
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["kutis"], context.previous);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["kutis"] });
     },
   });
