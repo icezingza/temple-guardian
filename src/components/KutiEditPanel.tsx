@@ -119,7 +119,7 @@ export function KutiEditPanel({ kuti, open, onClose }: KutiEditPanelProps) {
           <div className="space-y-1.5">
             <Label
               htmlFor="resident-name"
-              className={cn("text-base", isMaintenance && "text-muted-foreground")}
+              className={cn("text-lg font-medium", isMaintenance && "text-muted-foreground")}
             >
               ชื่อผู้พัก
             </Label>
@@ -141,7 +141,7 @@ export function KutiEditPanel({ kuti, open, onClose }: KutiEditPanelProps) {
 
           {/* Status selector */}
           <div className="space-y-2">
-            <Label className="text-base">สถานะ</Label>
+            <Label className="text-lg font-medium">สถานะ</Label>
             <div className="grid grid-cols-2 gap-2">
               {ALL_STATUSES.map((key) => {
                 const config = STATUS_CONFIG[key];
@@ -151,7 +151,7 @@ export function KutiEditPanel({ kuti, open, onClose }: KutiEditPanelProps) {
                     onClick={() => handleStatusChange(key)}
                     disabled={isLoading}
                     className={cn(
-                      "flex items-center gap-2 rounded-lg border-2 p-3 min-h-[44px] text-sm font-medium transition-all",
+                      "flex items-center gap-2 rounded-lg border-2 p-3 min-h-[52px] text-base font-medium transition-all",
                       status === key
                         ? "border-primary bg-primary/10"
                         : "border-border hover:border-muted-foreground/30",
@@ -168,7 +168,7 @@ export function KutiEditPanel({ kuti, open, onClose }: KutiEditPanelProps) {
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes" className="text-base">
+            <Label htmlFor="notes" className="text-lg font-medium">
               หมายเหตุ
             </Label>
             <Textarea

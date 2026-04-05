@@ -42,15 +42,29 @@ export function KutiLight({
       style={{ left: `${x}%`, top: `${y}%` }}
       aria-label={`Kuti ${kutiNumber} - ${status}`}
     >
-      <div
-        className={cn(
-          "w-5 h-5 rounded-full border-2 border-card shadow-md transition-all",
-          statusColorMap[status],
-          isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background scale-125",
-          !isSelected && !isDraggable && !isDimmed && "group-hover:scale-110",
-          isDraggable && "group-hover:scale-125 group-hover:ring-2 group-hover:ring-primary/50 group-hover:ring-offset-1"
+      {/* Dot with pulse ring on selected */}
+      <div className="relative w-5 h-5">
+        {isSelected && (
+          <span
+            className={cn(
+              "absolute inset-0 rounded-full animate-ping opacity-60",
+              statusColorMap[status]
+            )}
+            style={{ animationDuration: "1.5s" }}
+          />
         )}
-      />
+        <div
+          className={cn(
+            "relative w-5 h-5 rounded-full border-2 border-card shadow-md transition-all",
+            statusColorMap[status],
+            isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background scale-125",
+            !isSelected && !isDraggable && !isDimmed && "group-hover:scale-110",
+            isDraggable &&
+              "group-hover:scale-125 group-hover:ring-2 group-hover:ring-primary/50 group-hover:ring-offset-1"
+          )}
+        />
+      </div>
+
       <span
         className={cn(
           "text-[9px] font-bold mt-0.5 leading-none px-1 rounded",

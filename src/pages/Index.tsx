@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useKutis, useSeedKutis } from "@/hooks/use-kutis";
 import type { Kuti, KutiStatus } from "@/hooks/use-kutis";
 import { KUTI_POSITIONS, ALL_KUTI_NUMBERS } from "@/lib/kuti-positions";
@@ -83,9 +83,9 @@ const Index = () => {
         </h1>
         <button
           onClick={() => setHistoryOpen(true)}
-          className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-card-foreground hover:bg-accent transition-colors"
+          className="flex items-center gap-2 h-12 rounded-lg border border-border px-4 text-base font-medium text-card-foreground hover:bg-accent transition-colors"
         >
-          <History className="w-4 h-4" />
+          <History className="w-5 h-5" />
           ประวัติ
         </button>
       </header>
@@ -125,13 +125,24 @@ const Index = () => {
           />
         </TabsContent>
 
-        <TabsContent value="map" className="flex-1 min-h-0 px-4 pb-4">
-          <TempleMap
-            kutis={sortedKutis}
-            selectedKutiId={selectedKuti?.id ?? null}
-            onSelectKuti={handleSelectKuti}
-            matchedKutiNumbers={matchedKutiNumbers}
-          />
+        {/*
+          Map tab — on lg (landscape tablet/desktop) the Dashboard
+          appears as a side-rail. On portrait/small screens the map
+          fills the full width as before.
+        */}
+        <TabsContent value="map" className="flex-1 min-h-0 px-4 pb-4 lg:flex lg:gap-4">
+          <div className="flex-1 min-w-0 h-full">
+            <TempleMap
+              kutis={sortedKutis}
+              selectedKutiId={selectedKuti?.id ?? null}
+              onSelectKuti={handleSelectKuti}
+              matchedKutiNumbers={matchedKutiNumbers}
+            />
+          </div>
+          {/* Side-rail: visible only on lg landscape */}
+          <aside className="hidden lg:flex lg:flex-col lg:w-72 shrink-0 overflow-y-auto">
+            <Dashboard kutis={sortedKutis} isLoading={isLoading} />
+          </aside>
         </TabsContent>
 
         <TabsContent value="list" className="flex-1 min-h-0 p-4 pt-0 overflow-auto">

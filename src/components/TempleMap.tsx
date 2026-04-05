@@ -4,7 +4,7 @@ import { KutiLight } from "./KutiLight";
 import type { Kuti } from "@/hooks/use-kutis";
 import { KUTI_POSITIONS } from "@/lib/kuti-positions";
 import { cn } from "@/lib/utils";
-import { Crosshair, Copy, Check } from "lucide-react";
+import { Crosshair, Copy, Check, ZoomIn, ZoomOut, Expand } from "lucide-react";
 
 interface TempleMapProps {
   kutis: Kuti[];
@@ -169,6 +169,28 @@ export function TempleMap({ kutis, selectedKutiId, onSelectKuti, matchedKutiNumb
     });
   }, []);
 
+  const handleZoomIn = useCallback(() => {
+    setScale((s) => {
+      const newS = Math.min(4, s + 0.75);
+      setTranslate((t) => clampTranslate(t.x, t.y, newS));
+      return newS;
+    });
+  }, [clampTranslate]);
+
+  const handleZoomOut = useCallback(() => {
+    setScale((s) => {
+      const newS = Math.max(1, s - 0.75);
+      if (newS === 1) setTranslate({ x: 0, y: 0 });
+      else setTranslate((t) => clampTranslate(t.x, t.y, newS));
+      return newS;
+    });
+  }, [clampTranslate]);
+
+  const handleZoomReset = useCallback(() => {
+    setScale(1);
+    setTranslate({ x: 0, y: 0 });
+  }, []);
+
   const handleCopy = useCallback(async () => {
     const lines = Object.entries(movedKutis)
       .sort(([a], [b]) => Number(a) - Number(b))
@@ -242,13 +264,13 @@ export function TempleMap({ kutis, selectedKutiId, onSelectKuti, matchedKutiNumb
       <button
         onClick={handleToggleEditMode}
         className={cn(
-          "absolute top-3 left-3 z-20 rounded-lg border px-3 py-2 text-sm font-medium shadow-md flex items-center gap-1.5",
+          "absolute top-3 left-3 z-20 h-12 rounded-lg border px-4 text-sm font-medium shadow-md flex items-center gap-2",
           isEditMode
             ? "bg-primary text-primary-foreground border-primary"
             : "bg-card/90 border-border text-card-foreground"
         )}
       >
-        <Crosshair className="w-4 h-4" />
+        <Crosshair className="w-4 h-4 shrink-0" />
         {isEditMode ? "เสร็จสิ้น" : "ปรับตำแหน่ง"}
       </button>
 
@@ -286,16 +308,35 @@ export function TempleMap({ kutis, selectedKutiId, onSelectKuti, matchedKutiNumb
         </div>
       )}
 
-      {scale > 1 && !isEditMode && (
-        <button
-          onClick={() => {
-            setScale(1);
-            setTranslate({ x: 0, y: 0 });
-          }}
-          className="absolute bottom-3 right-3 z-20 rounded-lg bg-card/90 border border-border px-3 py-2 text-sm font-medium shadow-md"
-        >
-          รีเซ็ตซูม
-        </button>
+      {/* Zoom controls — always shown when not in edit mode */}
+      {!isEditMode && (
+        <div className="absolute bottom-3 right-3 z-20 flex flex-col gap-2 items-center">
+          <button
+            onClick={handleZoomIn}
+            disabled={scale >= 4}
+            className="w-12 h-12 rounded-lg bg-card/90 border border-border shadow-md flex items-center justify-center text-card-foreground hover:bg-card disabled:opacity-40 transition-colors"
+            aria-label="ซูมเข้า"
+          >
+            <ZoomIn className="w-5 h-5" />
+          </button>
+          <button
+            onClick={handleZoomOut}
+            disabled={scale <= 1}
+            className="w-12 h-12 rounded-lg bg-card/90 border border-border shadow-md flex items-center justify-center text-card-foreground hover:bg-card disabled:opacity-40 transition-colors"
+            aria-label="ซูมออก"
+          >
+            <ZoomOut className="w-5 h-5" />
+          </button>
+          {scale > 1 && (
+            <button
+              onClick={handleZoomReset}
+              className="w-12 h-12 rounded-lg bg-card/90 border border-border shadow-md flex items-center justify-center text-card-foreground hover:bg-card transition-colors"
+              aria-label="รีเซ็ตซูม"
+            >
+              <Expand className="w-5 h-5" />
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
