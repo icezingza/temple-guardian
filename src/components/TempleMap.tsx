@@ -10,9 +10,10 @@ interface TempleMapProps {
   kutis: Kuti[];
   selectedKutiId: string | null;
   onSelectKuti: (kuti: Kuti) => void;
+  matchedKutiNumbers?: Set<string> | null;
 }
 
-export function TempleMap({ kutis, selectedKutiId, onSelectKuti }: TempleMapProps) {
+export function TempleMap({ kutis, selectedKutiId, onSelectKuti, matchedKutiNumbers }: TempleMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -179,6 +180,7 @@ export function TempleMap({ kutis, selectedKutiId, onSelectKuti }: TempleMapProp
   }, [movedKutis]);
 
   const kutiMap = new Map(kutis.map((k) => [k.kuti_number, k]));
+  const isFilterActive = matchedKutiNumbers != null;
 
   const getPos = (number: string) => overridePositions[number] ?? KUTI_POSITIONS[number];
 
@@ -218,6 +220,7 @@ export function TempleMap({ kutis, selectedKutiId, onSelectKuti }: TempleMapProp
             const kuti = kutiMap.get(number);
             if (!kuti) return null;
             const pos = getPos(number);
+            const isDimmed = isFilterActive && !matchedKutiNumbers!.has(number);
             return (
               <KutiLight
                 key={number}
@@ -227,6 +230,7 @@ export function TempleMap({ kutis, selectedKutiId, onSelectKuti }: TempleMapProp
                 y={pos.y}
                 isSelected={!isEditMode && kuti.id === selectedKutiId}
                 isDraggable={isEditMode}
+                isDimmed={isDimmed}
                 onClick={isEditMode ? undefined : () => onSelectKuti(kuti)}
               />
             );

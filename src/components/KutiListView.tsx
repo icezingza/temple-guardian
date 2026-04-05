@@ -1,7 +1,4 @@
-import { useState } from "react";
 import { format } from "date-fns";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -15,6 +12,7 @@ import { STATUS_CONFIG, type Kuti } from "@/hooks/use-kutis";
 
 interface KutiListViewProps {
   kutis: Kuti[];
+  totalCount: number;
   onSelectKuti: (kuti: Kuti) => void;
 }
 
@@ -26,37 +24,16 @@ function formatUpdatedAt(ts: string): string {
   }
 }
 
-export function KutiListView({ kutis, onSelectKuti }: KutiListViewProps) {
-  const [query, setQuery] = useState("");
-
-  const filtered = query.trim()
-    ? kutis.filter((k) => {
-        const q = query.trim().toLowerCase();
-        return (
-          k.kuti_number.toLowerCase().includes(q) ||
-          (k.name ?? "").toLowerCase().includes(q)
-        );
-      })
-    : kutis;
+export function KutiListView({ kutis, totalCount, onSelectKuti }: KutiListViewProps) {
+  const isFiltered = kutis.length < totalCount;
 
   return (
     <div className="flex flex-col gap-3 h-full">
-      {/* Search bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="ค้นหากุฏิหรือชื่อผู้พัก..."
-          className="pl-9 h-11 text-base"
-        />
-      </div>
-
       {/* Result count */}
       <p className="text-sm text-muted-foreground px-0.5">
-        {query.trim()
-          ? `พบ ${filtered.length} จาก ${kutis.length} กุฏิ`
-          : `กุฏิทั้งหมด ${kutis.length} หลัง`}
+        {isFiltered
+          ? `แสดง ${kutis.length} จาก ${totalCount} กุฏิ`
+          : `กุฏิทั้งหมด ${totalCount} หลัง`}
       </p>
 
       {/* Table */}
@@ -71,19 +48,19 @@ export function KutiListView({ kutis, onSelectKuti }: KutiListViewProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length === 0 ? (
+            {kutis.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={4}
                   className="text-center text-muted-foreground py-10"
                 >
-                  {query.trim()
-                    ? `ไม่พบ "${query}" กรุณาลองคำค้นหาอื่น`
+                  {isFiltered
+                    ? "ไม่พบกุฏิที่ตรงกับการค้นหา กรุณาลองใหม่"
                     : "ยังไม่มีข้อมูลกุฏิ"}
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((kuti) => {
+              kutis.map((kuti) => {
                 const config = STATUS_CONFIG[kuti.status];
                 return (
                   <TableRow
