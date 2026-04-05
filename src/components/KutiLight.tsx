@@ -7,7 +7,8 @@ interface KutiLightProps {
   x: number;
   y: number;
   isSelected: boolean;
-  onClick: () => void;
+  isDraggable?: boolean;
+  onClick?: () => void;
 }
 
 const statusColorMap: Record<KutiStatus, string> = {
@@ -23,12 +24,17 @@ export function KutiLight({
   x,
   y,
   isSelected,
+  isDraggable = false,
   onClick,
 }: KutiLightProps) {
   return (
     <button
+      data-kuti={kutiNumber}
       onClick={onClick}
-      className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10"
+      className={cn(
+        "absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10",
+        isDraggable ? "cursor-move touch-none" : "cursor-pointer"
+      )}
       style={{ left: `${x}%`, top: `${y}%` }}
       aria-label={`Kuti ${kutiNumber} - ${status}`}
     >
@@ -37,7 +43,8 @@ export function KutiLight({
           "w-5 h-5 rounded-full border-2 border-card shadow-md transition-all",
           statusColorMap[status],
           isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background scale-125",
-          !isSelected && "group-hover:scale-110"
+          !isSelected && !isDraggable && "group-hover:scale-110",
+          isDraggable && "group-hover:scale-125 group-hover:ring-2 group-hover:ring-primary/50 group-hover:ring-offset-1"
         )}
       />
       <span
