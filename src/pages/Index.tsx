@@ -8,13 +8,16 @@ import { KutiListView } from "@/components/KutiListView";
 import { Dashboard } from "@/components/Dashboard";
 import { FilterToolbar } from "@/components/FilterToolbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Map, List, LayoutDashboard, Loader2 } from "lucide-react";
+import { Map, List, LayoutDashboard, Loader2, History } from "lucide-react";
+import { ActivityLogList } from "@/components/ActivityLogList";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const Index = () => {
   const { data: kutis, isLoading } = useKutis();
   const seedKutis = useSeedKutis();
   const [selectedKuti, setSelectedKuti] = useState<Kuti | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [seeded, setSeeded] = useState(false);
 
   // Global search/filter state — shared across Map and List views
@@ -74,10 +77,17 @@ const Index = () => {
   return (
     <div className="flex flex-col h-screen">
       {/* Header */}
-      <header className="shrink-0 border-b border-border bg-card px-4 py-3">
+      <header className="shrink-0 border-b border-border bg-card px-4 py-3 flex items-center justify-between">
         <h1 className="text-lg font-bold text-card-foreground">
           ระบบจัดการกุฏิ
         </h1>
+        <button
+          onClick={() => setHistoryOpen(true)}
+          className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-card-foreground hover:bg-accent transition-colors"
+        >
+          <History className="w-4 h-4" />
+          ประวัติ
+        </button>
       </header>
 
       {/* Main content */}
@@ -143,6 +153,21 @@ const Index = () => {
         open={editOpen}
         onClose={() => setEditOpen(false)}
       />
+
+      {/* Activity Log Panel */}
+      <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+        <SheetContent side="right" className="w-[340px] sm:w-[420px] flex flex-col">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <History className="w-5 h-5" />
+              ประวัติการเปลี่ยนแปลง
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto mt-4">
+            <ActivityLogList />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

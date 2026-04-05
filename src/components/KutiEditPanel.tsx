@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useUpdateKuti, STATUS_CONFIG, type Kuti, type KutiStatus } from "@/hooks/use-kutis";
+import { useInsertActivityLog } from "@/hooks/use-activity-log";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -23,6 +24,7 @@ export function KutiEditPanel({ kuti, open, onClose }: KutiEditPanelProps) {
   const [notes, setNotes] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
   const updateKuti = useUpdateKuti();
+  const insertLog = useInsertActivityLog();
 
   // Reset form when a different kuti is selected
   useEffect(() => {
@@ -59,9 +61,19 @@ export function KutiEditPanel({ kuti, open, onClose }: KutiEditPanelProps) {
       setNameError("กรุณาใส่ชื่อผู้พักสำหรับสถานะ 'มีผู้พัก'");
       return;
     }
+    const oldData = { name: kuti.name ?? "", status: kuti.status, notes: kuti.notes ?? "" };
+    const newData = { name, status, notes };
     try {
       await updateKuti.mutateAsync({ id: kuti.id, name, status, notes });
       toast.success(`กุฏิ ${kuti.kuti_number} บันทึกแล้ว`);
+      // Fire-and-forget: log must not block the UI update
+      insertLog.mutate({
+        kuti_id: kuti.id,
+        kuti_number: kuti.kuti_number,
+        action_type: "UPDATE",
+        old_data: oldData,
+        new_data: newData,
+      });
       onClose();
     } catch {
       toast.error("บันทึกไม่สำเร็จ กรุณาลองใหม่");
@@ -71,14 +83,19 @@ export function KutiEditPanel({ kuti, open, onClose }: KutiEditPanelProps) {
   // Clear All: saves immediately — resets kuti to Available with no name/notes
   const handleClearAll = async () => {
     if (!kuti) return;
+    const oldData = { name: kuti.name ?? "", status: kuti.status, notes: kuti.notes ?? "" };
+    const newData = { name: "", status: "available" as KutiStatus, notes: "" };
     try {
-      await updateKuti.mutateAsync({
-        id: kuti.id,
-        name: "",
-        status: "available",
-        notes: "",
-      });
+      await updateKuti.mutateAsync({ id: kuti.id, name: "", status: "available", notes: "" });
       toast.success(`กุฏิ ${kuti.kuti_number} ล้างข้อมูลแล้ว`);
+      // Fire-and-forget: log must not block the UI update
+      insertLog.mutate({
+        kuti_id: kuti.id,
+        kuti_number: kuti.kuti_number,
+        action_type: "CLEAR",
+        old_data: oldData,
+        new_data: newData,
+      });
       onClose();
     } catch {
       toast.error("ล้างข้อมูลไม่สำเร็จ กรุณาลองใหม่");
