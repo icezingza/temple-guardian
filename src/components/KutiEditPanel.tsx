@@ -15,42 +15,50 @@ interface KutiEditPanelProps {
   onClose: () => void;
 }
 
-// Statuses the user can select manually regardless of name
-const MANUAL_STATUSES: KutiStatus[] = ["available", "occupied", "reserved", "maintenance"];
+const ALL_STATUSES: KutiStatus[] = ["available", "occupied", "reserved", "maintenance"];
 
 export function KutiEditPanel({ kuti, open, onClose }: KutiEditPanelProps) {
   const [name, setName] = useState("");
   const [status, setStatus] = useState<KutiStatus>("available");
   const [notes, setNotes] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
   const updateKuti = useUpdateKuti();
 
-  // Populate form when a different kuti is selected
+  // Reset form when a different kuti is selected
   useEffect(() => {
     if (kuti) {
       setName(kuti.name ?? "");
       setStatus(kuti.status);
       setNotes(kuti.notes ?? "");
+      setNameError(null);
     }
   }, [kuti]);
 
-  // Auto-status: name entered → occupied, name cleared → available
+  // Auto-transition only between available ↔ occupied.
+  // Reserved and Maintenance are manual — don't override them.
   const handleNameChange = (value: string) => {
     setName(value);
-    if (value.trim()) {
-      setStatus("occupied");
-    } else {
-      setStatus("available");
-    }
+    if (nameError) setNameError(null);
+    if (status === "reserved" || status === "maintenance") return;
+    setStatus(value.trim() ? "occupied" : "available");
   };
 
-  const handleClear = () => {
-    setName("");
-    setStatus("available");
-    setNotes("");
+  // Maintenance: disable and clear name. Other status changes: just switch.
+  const handleStatusChange = (newStatus: KutiStatus) => {
+    setStatus(newStatus);
+    if (nameError) setNameError(null);
+    if (newStatus === "maintenance") {
+      setName("");
+    }
   };
 
   const handleSave = async () => {
     if (!kuti) return;
+    // Rule: Occupied requires a name
+    if (status === "occupied" && !name.trim()) {
+      setNameError("กรุณาใส่ชื่อผู้พักสำหรับสถานะ 'มีผู้พัก'");
+      return;
+    }
     try {
       await updateKuti.mutateAsync({ id: kuti.id, name, status, notes });
       toast.success(`กุฏิ ${kuti.kuti_number} บันทึกแล้ว`);
@@ -60,7 +68,27 @@ export function KutiEditPanel({ kuti, open, onClose }: KutiEditPanelProps) {
     }
   };
 
+  // Clear All: saves immediately — resets kuti to Available with no name/notes
+  const handleClearAll = async () => {
+    if (!kuti) return;
+    try {
+      await updateKuti.mutateAsync({
+        id: kuti.id,
+        name: "",
+        status: "available",
+        notes: "",
+      });
+      toast.success(`กุฏิ ${kuti.kuti_number} ล้างข้อมูลแล้ว`);
+      onClose();
+    } catch {
+      toast.error("ล้างข้อมูลไม่สำเร็จ กรุณาลองใหม่");
+    }
+  };
+
   if (!kuti) return null;
+
+  const isMaintenance = status === "maintenance";
+  const isLoading = updateKuti.isPending;
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
@@ -71,34 +99,46 @@ export function KutiEditPanel({ kuti, open, onClose }: KutiEditPanelProps) {
 
         <div className="mt-6 space-y-5">
           {/* Resident name */}
-          <div className="space-y-2">
-            <Label htmlFor="resident-name" className="text-base">
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="resident-name"
+              className={cn("text-base", isMaintenance && "text-muted-foreground")}
+            >
               ชื่อผู้พัก
             </Label>
             <Input
               id="resident-name"
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="ชื่อ-นามสกุล"
-              className="h-12 text-base"
+              placeholder={isMaintenance ? "ปิดใช้งานระหว่างซ่อมบำรุง" : "ชื่อ-นามสกุล"}
+              disabled={isMaintenance || isLoading}
+              className={cn(
+                "h-12 text-base",
+                nameError && "border-destructive focus-visible:ring-destructive"
+              )}
             />
+            {nameError && (
+              <p className="text-sm font-medium text-destructive">{nameError}</p>
+            )}
           </div>
 
           {/* Status selector */}
           <div className="space-y-2">
             <Label className="text-base">สถานะ</Label>
             <div className="grid grid-cols-2 gap-2">
-              {(MANUAL_STATUSES).map((key) => {
+              {ALL_STATUSES.map((key) => {
                 const config = STATUS_CONFIG[key];
                 return (
                   <button
                     key={key}
-                    onClick={() => setStatus(key)}
+                    onClick={() => handleStatusChange(key)}
+                    disabled={isLoading}
                     className={cn(
                       "flex items-center gap-2 rounded-lg border-2 p-3 min-h-[44px] text-sm font-medium transition-all",
                       status === key
                         ? "border-primary bg-primary/10"
-                        : "border-border hover:border-muted-foreground/30"
+                        : "border-border hover:border-muted-foreground/30",
+                      isLoading && "opacity-50 cursor-not-allowed"
                     )}
                   >
                     <div className={cn("w-4 h-4 rounded-full shrink-0", config.colorClass)} />
@@ -119,6 +159,7 @@ export function KutiEditPanel({ kuti, open, onClose }: KutiEditPanelProps) {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="บันทึกเพิ่มเติม..."
+              disabled={isLoading}
               className="min-h-[80px] text-base"
             />
           </div>
@@ -127,23 +168,19 @@ export function KutiEditPanel({ kuti, open, onClose }: KutiEditPanelProps) {
           <div className="space-y-2">
             <Button
               onClick={handleSave}
-              disabled={updateKuti.isPending}
+              disabled={isLoading}
               className="w-full h-14 text-lg font-semibold"
             >
-              {updateKuti.isPending ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                "บันทึก"
-              )}
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "บันทึก"}
             </Button>
 
             <Button
               variant="outline"
-              onClick={handleClear}
-              disabled={updateKuti.isPending}
-              className="w-full h-12 text-base"
+              onClick={handleClearAll}
+              disabled={isLoading}
+              className="w-full h-12 text-base text-destructive border-destructive/30 hover:bg-destructive/5 hover:text-destructive"
             >
-              ล้างข้อมูล
+              ล้างข้อมูลทั้งหมด
             </Button>
           </div>
         </div>
