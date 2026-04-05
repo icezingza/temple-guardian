@@ -33,10 +33,10 @@ export function TempleMap({ kutis, selectedKutiId, onSelectKuti, matchedKutiNumb
 
   const clampTranslate = useCallback(
     (tx: number, ty: number, s: number) => {
-      const el = containerRef.current;
+      const el = innerRef.current;
       if (!el) return { x: tx, y: ty };
-      const maxX = (el.scrollWidth * (s - 1)) / 2;
-      const maxY = (el.scrollHeight * (s - 1)) / 2;
+      const maxX = (el.offsetWidth * (s - 1)) / 2;
+      const maxY = (el.offsetHeight * (s - 1)) / 2;
       return {
         x: Math.max(-maxX, Math.min(maxX, tx)),
         y: Math.max(-maxY, Math.min(maxY, ty)),
@@ -214,7 +214,7 @@ export function TempleMap({ kutis, selectedKutiId, onSelectKuti, matchedKutiNumb
     <div
       ref={containerRef}
       className={cn(
-        "relative w-full h-full overflow-hidden bg-muted rounded-lg",
+        "relative w-full h-full overflow-hidden bg-muted rounded-lg flex items-center justify-center",
         isEditMode ? "cursor-default" : "cursor-grab active:cursor-grabbing"
       )}
       onWheel={handleWheel}
@@ -223,10 +223,14 @@ export function TempleMap({ kutis, selectedKutiId, onSelectKuti, matchedKutiNumb
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
     >
+      {/* Fixed aspect-ratio box — image and lights are always aligned */}
       <div
         ref={innerRef}
-        className="relative w-full h-full transition-transform duration-75"
+        className="relative transition-transform duration-75"
         style={{
+          aspectRatio: "584/738",
+          maxHeight: "100%",
+          maxWidth: "100%",
           transform: `translate(${translate.x}px, ${translate.y}px) scale(${scale})`,
           transformOrigin: "center center",
         }}
@@ -234,7 +238,7 @@ export function TempleMap({ kutis, selectedKutiId, onSelectKuti, matchedKutiNumb
         <img
           src={templeMapImage}
           alt="Temple Map"
-          className="w-full h-full object-contain pointer-events-none select-none"
+          className="w-full h-full object-cover pointer-events-none select-none"
           draggable={false}
         />
         <div className="absolute inset-0">
