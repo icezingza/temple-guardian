@@ -85,7 +85,7 @@ const Index = () => {
         </TabsContent>
 
         <TabsContent value="dashboard" className="flex-1 min-h-0 p-4 pt-2 overflow-auto">
-          <Dashboard kutis={sortedKutis} />
+          <Dashboard kutis={sortedKutis} isLoading={isLoading} />
         </TabsContent>
       </Tabs>
 
